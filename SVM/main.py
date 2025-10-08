@@ -4,7 +4,7 @@ from src.train_model import train_svm
 from src.evaluate_model import evaluate_model
 from src.predict import predict_text
 
-DATA_PATH = ""  # Need to add the correct one
+DATA_PATH = "data/news.csv"
 
 
 def main():
@@ -18,14 +18,27 @@ def main():
     X_train, X_test, y_train, y_test, vectorizer = preprocess_data(df)
 
     print("Training SVM model...")
-    model = train_svm(X_train, y_train)
+    # Unpack the returned tuple
+    model, scaler = train_svm(X_train, y_train)
 
     print("Evaluating model...")
-    evaluate_model(model, X_test, y_test)
+    # Transform both train and test sets using the same scaler
+    X_train_scaled = scaler.transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
 
-    # --- Interactive Prediction ---
+    # Get all metrics dictionary from evaluate_model
+    metrics = evaluate_model(model, X_train_scaled, y_train, X_test_scaled, y_test)
+
+    # Print results
+    print("\n-----------------------------")
+    print(f"Training Accuracy: {metrics['train_accuracy']:.4f}")
+    print(f"Testing Accuracy:  {metrics['test_accuracy']:.4f}")
+    print(f"Overall Accuracy:  {metrics['overall_accuracy']:.4f}")
+    print("-----------------------------")
+
+    # Interactive Prediction
     while True:
-        print("\n Enter a news article to test (or type 'exit' to quit):")
+        print("\nEnter a news article to test (or type 'exit' to quit):")
         user_input = input("> ")
 
         if user_input.lower() == "exit":
