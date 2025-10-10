@@ -17,16 +17,16 @@ import seaborn as sns
 def evaluate_model(
     model, X_train, y_train, X_test, y_test, model_name="SVM", results_dir="results"
 ):
-    """Evaluate model performance, including Accuracy, Precision, F1, ROC-AUC, and overall accuracy."""
+    """Evaluate model performance, including Accuracy, Precision, F1, ROC-AUC, and confusion matrices."""
 
     os.makedirs(results_dir, exist_ok=True)
 
-    # Training predictions
+    # Training Predictions
     y_train_pred = model.predict(X_train)
     train_acc = accuracy_score(y_train, y_train_pred)
     print(f"Training Accuracy: {train_acc:.4f}")
 
-    # Testing predictions
+    # Testing Predictions
     y_test_pred = model.predict(X_test)
     test_acc = accuracy_score(y_test, y_test_pred)
     print(f"Testing Accuracy: {test_acc:.4f}")
@@ -42,11 +42,10 @@ def evaluate_model(
     y_test_num = np.array([label_mapping[y] for y in y_test])
     y_test_pred_num = np.array([label_mapping[y] for y in y_test_pred])
 
-    # Precision & F1 (from test data)
+    # Precision, F1, ROC-AUC
     precision = precision_score(y_test_num, y_test_pred_num)
     f1 = f1_score(y_test_num, y_test_pred_num)
 
-    # ROC-AUC (for LinearSVC use decision_function)
     try:
         y_scores = model.decision_function(X_test)
         roc_auc = roc_auc_score(y_test_num, y_scores)
@@ -59,7 +58,7 @@ def evaluate_model(
     if roc_auc is not None:
         print(f"ROC-AUC: {roc_auc:.4f}")
 
-    # Save classification report
+    # Save Classification Report
     report = classification_report(y_test, y_test_pred, output_dict=True)
     metrics_df = pd.DataFrame(report).transpose()
     metrics_df["train_accuracy"] = train_acc
@@ -73,11 +72,47 @@ def evaluate_model(
     metrics_df.to_csv(metrics_path, index=True)
     print(f"Metrics saved to {metrics_path}")
 
-    # Confusion Matrix
-    cm = confusion_matrix(y_test, y_test_pred)
+    # Train Confusion Matrix
+    cm_train = confusion_matrix(y_train, y_train_pred)
     plt.figure(figsize=(5, 4))
     sns.heatmap(
-        cm,
+        cm_train,
+        annot=True,
+        fmt="d",
+        cmap="Greens",
+        xticklabels=["Fake", "Real"],
+        yticklabels=["Fake", "Real"],
+    )
+    plt.xlabel("Predicted")
+    plt.ylabel("True")
+    plt.title(f"Confusion Matrix (Train) - {model_name}")
+    plt.savefig(os.path.join(results_dir, f"{model_name}_confusion_matrix_train.png"))
+    plt.close()
+
+    # Normalized Train Confusion Matrix
+    cm_train_norm = confusion_matrix(y_train, y_train_pred, normalize="true")
+    plt.figure(figsize=(5, 4))
+    sns.heatmap(
+        cm_train_norm,
+        annot=True,
+        fmt=".2f",
+        cmap="Greens",
+        xticklabels=["Fake", "Real"],
+        yticklabels=["Fake", "Real"],
+    )
+    plt.xlabel("Predicted")
+    plt.ylabel("True")
+    plt.title(f"Normalized Confusion Matrix (Train) - {model_name}")
+    plt.savefig(
+        os.path.join(results_dir, f"{model_name}_confusion_matrix_train_normalized.png")
+    )
+    plt.close()
+
+    # Test Confusion Matrix
+    cm_test = confusion_matrix(y_test, y_test_pred)
+    plt.figure(figsize=(5, 4))
+    sns.heatmap(
+        cm_test,
         annot=True,
         fmt="d",
         cmap="Blues",
@@ -86,8 +121,27 @@ def evaluate_model(
     )
     plt.xlabel("Predicted")
     plt.ylabel("True")
-    plt.title(f"Confusion Matrix - {model_name}")
-    plt.savefig(os.path.join(results_dir, f"{model_name}_confusion_matrix.png"))
+    plt.title(f"Confusion Matrix (Test) - {model_name}")
+    plt.savefig(os.path.join(results_dir, f"{model_name}_confusion_matrix_test.png"))
+    plt.close()
+
+    # Normalized Test Confusion Matrix
+    cm_test_norm = confusion_matrix(y_test, y_test_pred, normalize="true")
+    plt.figure(figsize=(5, 4))
+    sns.heatmap(
+        cm_test_norm,
+        annot=True,
+        fmt=".2f",
+        cmap="Blues",
+        xticklabels=["Fake", "Real"],
+        yticklabels=["Fake", "Real"],
+    )
+    plt.xlabel("Predicted")
+    plt.ylabel("True")
+    plt.title(f"Normalized Confusion Matrix (Test) - {model_name}")
+    plt.savefig(
+        os.path.join(results_dir, f"{model_name}_confusion_matrix_test_normalized.png")
+    )
     plt.close()
 
     # ROC Curve Plot
