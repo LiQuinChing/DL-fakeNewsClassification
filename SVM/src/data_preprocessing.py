@@ -22,12 +22,13 @@ def preprocess_data(df):
     X = df["text"]
     y = df["label"]
 
-    # Split data
+    # Split data set into Train and Test
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
     # Vectorize text using TF-IDF
+    # Set max_df=0.7 to remove words that appear in more than 70% of documents
     vectorizer = TfidfVectorizer(stop_words="english", max_df=0.7)
     X_train_tfidf = vectorizer.fit_transform(X_train)
     X_test_tfidf = vectorizer.transform(X_test)

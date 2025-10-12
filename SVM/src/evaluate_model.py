@@ -58,7 +58,7 @@ def evaluate_model(
     if roc_auc is not None:
         print(f"ROC-AUC: {roc_auc:.4f}")
 
-    # Save Classification Report
+    # Save metrics to CSV file
     report = classification_report(y_test, y_test_pred, output_dict=True)
     metrics_df = pd.DataFrame(report).transpose()
     metrics_df["train_accuracy"] = train_acc

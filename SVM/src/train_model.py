@@ -14,12 +14,12 @@ def train_svm(X_train, y_train, model_path="model/svm_model.pkl", quick_tune=Tru
     scaler = StandardScaler(with_mean=False)
     X_train_scaled = scaler.fit_transform(X_train)
 
-    # Define the hyperparameter grid (lighter for large datasets)
+    # Define the hyperparameter grid for GridSearchCV
     if quick_tune:
         param_grid = {
-            "C": [0.001, 0.005, 0.01, 0.05, 0.1],
-            "class_weight": [None, "balanced"],
-            "max_iter": [10000],
+            "C": [0.001, 0.005, 0.01, 0.05, 0.1],  # Regularization strength
+            "class_weight": [None, "balanced"],  # Handles class imbalance
+            "max_iter": [10000],  # Iterations for convergence
         }
     else:
         param_grid = {
@@ -27,9 +27,10 @@ def train_svm(X_train, y_train, model_path="model/svm_model.pkl", quick_tune=Tru
             "class_weight": [None, "balanced"],
             "max_iter": [5000, 10000],
             "dual": [False],
-            "loss": ["squared_hinge"],
+            "loss": ["squared_hinge"],  # SVM loss function
         }
 
+    # Hyperparameter Optimization using Grid Search
     print("Running Grid Search (safe mode, n_jobs=1)...")
     grid_search = GridSearchCV(
         LinearSVC(),
