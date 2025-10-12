@@ -15,26 +15,34 @@ def main():
     df = load_data(DATA_PATH)
 
     print("Preprocessing data...")
-    X_train, X_test, y_train, y_test, vectorizer = preprocess_data(df)
+    # Preprocess and split into train/validation/test (80/10/10)
+    X_train_scaled, y_train, X_val_scaled, y_val, X_test_scaled, y_test, vectorizer = (
+        preprocess_data(df)
+    )
 
     print("Training SVM model...")
-    # Unpack the returned tuple
-    model, scaler = train_svm(X_train, y_train)
+    # Train SVM and get validation loss
+    (
+        model,
+        scaler,
+        val_loss,
+        (X_train_scaled, y_train, X_val_scaled, y_val, X_test_scaled, y_test),
+    ) = train_svm(X_train_scaled, y_train)
 
-    print("Evaluating model...")
-    # Transform both train and test sets using the same scaler
-    X_train_scaled = scaler.transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
-
-    # Get all metrics dictionary from evaluate_model
+    print("Evaluating model on test set...")
     metrics = evaluate_model(model, X_train_scaled, y_train, X_test_scaled, y_test)
 
-    # Print results
-    print("\n-----------------------------")
-    print(f"Training Accuracy: {metrics['train_accuracy']:.4f}")
-    print(f"Testing Accuracy:  {metrics['test_accuracy']:.4f}")
-    print(f"Overall Accuracy:  {metrics['overall_accuracy']:.4f}")
-    print("-----------------------------")
+    # Print summary results
+    print("\n-------------------------------------------------")
+    print(f"Training Accuracy : {metrics['train_accuracy']:.4f}")
+    print(f"Validation Loss   : {val_loss:.4f}")
+    print(f"Testing Accuracy  : {metrics['test_accuracy']:.4f}")
+    print(f"Overall Accuracy  : {metrics['overall_accuracy']:.4f}")
+    print(f"Precision         : {metrics['precision']:.4f}")
+    print(f"F1 Score          : {metrics['f1_score']:.4f}")
+    if metrics["roc_auc"] is not None:
+        print(f"ROC-AUC           : {metrics['roc_auc']:.4f}")
+    print("-------------------------------------------------")
 
     # Interactive Prediction
     while True:
