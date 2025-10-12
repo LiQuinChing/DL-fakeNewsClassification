@@ -1,3 +1,5 @@
+import utils.transport
+import utils.session
 import os
 from src.data_preprocessing import load_data, preprocess_data
 from src.train_model import train_svm
